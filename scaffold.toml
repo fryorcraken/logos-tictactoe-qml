@@ -1,5 +1,13 @@
 [scaffold]
 version = "0.1.1"
+# cache_root: directory for scaffold's build/repo caches.
+# Resolution order when resolving at runtime:
+#   1. LOGOS_SCAFFOLD_CACHE_ROOT env var
+#   2. cache_root below (uncomment to pin)
+#   3. $XDG_CACHE_HOME/logos-scaffold
+#   4. $HOME/.cache/logos-scaffold
+# Relative values resolve against this file's directory.
+# cache_root = ".scaffold/cache"
 
 [repos.lez]
 url = "https://github.com/logos-blockchain/logos-execution-zone.git"
@@ -28,11 +36,3 @@ source = "https://github.com/logos-co/logos-basecamp"
 lgpm_flake = ""
 port_base = 60000
 port_stride = 10
-
-[basecamp.modules.tictactoe_solo_ai]
-flake = "path:/home/fryorcraken/src/fryorcraken/logos-tictactoe-qml/logos-tictactoe-solo-ai#lgx"
-role = "project"
-
-[basecamp.modules.tictactoe_ui]
-flake = "path:/home/fryorcraken/src/fryorcraken/logos-tictactoe-qml/logos-tictactoe-ui#lgx"
-role = "project"
