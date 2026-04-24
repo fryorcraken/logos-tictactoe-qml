@@ -22,7 +22,7 @@ public:
     QString name()    const override { return "tictactoe_solo_ai"; }
     QString version() const override { return "1.0.0"; }
 
-    void initLogos(LogosAPI* api) override;
+    Q_INVOKABLE void initLogos(LogosAPI* api);
 
     Q_INVOKABLE void newGame(bool vsAi)        override;
     Q_INVOKABLE int  play(int row, int col)    override;
