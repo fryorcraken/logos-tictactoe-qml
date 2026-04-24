@@ -22,6 +22,7 @@ public:
     QString name()    const override { return "tictactoe_solo_ai"; }
     QString version() const override { return "1.0.0"; }
 
+    // NOT marked override — it is invoked reflectively via QMetaObject.
     Q_INVOKABLE void initLogos(LogosAPI* api);
 
     Q_INVOKABLE void newGame(bool vsAi)        override;

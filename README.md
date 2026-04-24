@@ -57,8 +57,9 @@ why.
 ### 1. Vendored `.so` built in-sandbox, not committed
 
 **Tutorial (Part 1, Step 1.5):** instructs the developer to run
-`gcc -shared -fPIC -o libcalc.so libcalc.c` manually before `nix build`, and the
-project tree shows `lib/libcalc.so` as a tracked file next to `libcalc.c`.
+`gcc -shared -fPIC -o libcalc.so libcalc.c` manually, and expects the `.so` to
+be present in `lib/` at every `nix build` (the suggested `.gitignore` does not
+exclude it, and Part 2 Step 5.2 reminds you to rebuild it if missing).
 
 **Here:** we compile `libtictactoe.so` in-sandbox via a `preConfigure` hook in
 `logos-tictactoe-solo-ai/flake.nix`, keep only `.c` / `.h` in git, and rely on
@@ -72,44 +73,23 @@ handler ignores the metadata `build_command` field
 so without the hook `.#lgx` links against undefined `tictactoe_*` symbols and
 crashes at first call.
 
-### 2. `initLogos` not marked `override` in the core plugin
+### 2. UI's `flake.lock` is not committed
 
-**Tutorial + `with-external-lib` scaffold template:** declare
-`void initLogos(LogosAPI* api) override;` on the plugin class.
+**Tutorial (Part 1 Step 3.1, Part 2 Step 5.1):** `git add flake.lock` after
+`nix flake update`.
 
-**Here:** we drop `override` and mark the method `Q_INVOKABLE`.
+**Here:** we commit the *core* module's `flake.lock` as the tutorial says
+(all its inputs are `github:` refs — lockable), but `logos-tictactoe-ui/flake.lock`
+is `.gitignore`d and regenerated on every build.
 
-**Why:** the `PluginInterface` base class shipped with the unpinned
-`logos-module-builder` default branch does NOT declare `initLogos` as a virtual
-method. The scaffold template therefore does not compile as-shipped —
-**scaffold template bug, to be reported upstream.**
-
-### 3. UI flake references core via `path:` instead of `github:`
-
-**Tutorial:**
-```nix
-calc_module.url = "github:logos-co/logos-tutorial?dir=logos-calc-module";
-```
-
-**Here:**
-```nix
-tictactoe_solo_ai.url = "path:../logos-tictactoe-solo-ai";
-```
-
-**Why:** the tutorial's core module lives in a separate public repo that's
-already been pushed. Ours is a sibling directory in the same repo being built
-alongside the UI, so `path:` is the correct reference — a `github:` URL would
-pull master (or a stale pin) instead of picking up local edits to the sibling
-core module.
-
-**Follow-on deviation:** the tutorial instructs `git add flake.lock` after
-`nix flake update`, and we do commit the *core* module's `flake.lock` (all
-its inputs are `github:` refs — lockable). We do **not** commit the UI's
-`flake.lock`: with a sibling `path:../` input, Nix records the input as
+**Why:** we picked the tutorial's Option B (Part 2 Step 5.2) for the UI→core
+flake input — `tictactoe_solo_ai.url = "path:../logos-tictactoe-solo-ai"` —
+because both modules are siblings in this repo. With a sibling `path:../`
+input, Nix records the input as
 `{"path":"../logos-tictactoe-solo-ai","type":"path"}`, which pure-eval mode
 rejects as "unlocked" because relative paths have no narHash. CI fails on
-this. `logos-tictactoe-ui/flake.lock` is `.gitignore`d; the transitive Qt /
-module-builder pins are still reproducible via the core module's lock.
+the committed lock. The transitive Qt / module-builder pins are still
+reproducible via the core module's lock.
 
 ## Known issues hit while dogfooding `lgs`
 
