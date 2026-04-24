@@ -22,8 +22,10 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install lgs (logos-scaffold)
-        run: cargo install --git https://github.com/logos-co/logos-scaffold.git --locked logos-scaffold
+      - name: Install lgs (logos-scaffold, feature/basecamp branch)
+        # `basecamp` is not yet on master; it lives on the feature/basecamp
+        # branch in logos-co/logos-scaffold. Pin explicitly until it merges.
+        run: cargo install --git https://github.com/logos-co/logos-scaffold.git --branch feature/basecamp --locked logos-scaffold
 
       - name: Capture project modules
         run: lgs basecamp modules
