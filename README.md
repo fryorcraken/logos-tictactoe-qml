@@ -102,6 +102,15 @@ alongside the UI, so `path:` is the correct reference — a `github:` URL would
 pull master (or a stale pin) instead of picking up local edits to the sibling
 core module.
 
+**Follow-on deviation:** the tutorial instructs `git add flake.lock` after
+`nix flake update`, and we do commit the *core* module's `flake.lock` (all
+its inputs are `github:` refs — lockable). We do **not** commit the UI's
+`flake.lock`: with a sibling `path:../` input, Nix records the input as
+`{"path":"../logos-tictactoe-solo-ai","type":"path"}`, which pure-eval mode
+rejects as "unlocked" because relative paths have no narHash. CI fails on
+this. `logos-tictactoe-ui/flake.lock` is `.gitignore`d; the transitive Qt /
+module-builder pins are still reproducible via the core module's lock.
+
 ## Known issues hit while dogfooding `lgs`
 
 - **`lgs basecamp reset` does not detect a launched basecamp that was started

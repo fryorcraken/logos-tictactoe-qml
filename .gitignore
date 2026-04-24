@@ -1,3 +1,9 @@
 .scaffold
 result
 result-*
+
+# The UI's flake.lock pins `tictactoe_solo_ai` to `path:../logos-tictactoe-solo-ai`,
+# which Nix treats as unlocked in pure-eval mode (CI rejects it). Sibling-path
+# inputs aren't reproducibly lockable — we keep only the core's flake.lock
+# (all github: refs) and let the UI regenerate its lock at build time.
+logos-tictactoe-ui/flake.lock
