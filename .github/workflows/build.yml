@@ -27,27 +27,32 @@ jobs:
         # branch in logos-co/logos-scaffold. Pin explicitly until it merges.
         run: cargo install --git https://github.com/logos-co/logos-scaffold.git --branch feature/basecamp --locked logos-scaffold
 
+      - name: lgs basecamp setup
+        # Required for `install` (seeds alice/bob profiles + pinned
+        # basecamp + lgpm).
+        run: lgs basecamp setup
+
       - name: Capture project modules
         run: lgs basecamp modules
 
-      - name: Build portable LGX (both modules, via lgs)
-        id: build_portable
-        run: |
-          lgs basecamp build-portable | tee /tmp/portable.log
+      - name: Build dev LGX (both modules, via lgs basecamp install)
+        # Leaves `result-lgx/` symlinks next to each sibling flake.
+        run: lgs basecamp install --print-output
 
-      - name: Build dev LGX (both modules, via nix)
-        run: |
-          nix build 'path:./logos-tictactoe-solo-ai#lgx' --out-link result-solo-ai-dev
-          nix build 'path:./logos-tictactoe-ui#lgx'       --out-link result-ui-dev
+      - name: Build portable LGX (both modules, via lgs basecamp build-portable)
+        # Leaves `result-lgx-portable/` symlinks next to each sibling flake.
+        run: lgs basecamp build-portable
 
       - name: Stage artifacts
+        # Only the portable variant is shipped. Dev `.lgx` is built in the
+        # previous step to validate that the non-portable flake works, but
+        # it depends on the host Nix store and isn't useful to end users.
         run: |
+          set -euo pipefail
           mkdir -p dist
-          grep -oE '/nix/store/[^ ]*\.lgx' /tmp/portable.log | while read -r p; do
-            cp -v "$p" dist/
+          for d in logos-tictactoe-solo-ai logos-tictactoe-ui; do
+            cp -v "$d/result-lgx-portable"/*.lgx dist/
           done
-          cp -v result-solo-ai-dev/logos-tictactoe_solo_ai-module-lib.lgx dist/logos-tictactoe_solo_ai-module-lib-dev.lgx
-          cp -v result-ui-dev/logos-tictactoe_ui-module.lgx               dist/logos-tictactoe_ui-module-dev.lgx
           ls -la dist/
 
       - name: Upload LGX bundle
