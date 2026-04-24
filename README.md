@@ -91,28 +91,6 @@ rejects as "unlocked" because relative paths have no narHash. CI fails on
 the committed lock. The transitive Qt / module-builder pins are still
 reproducible via the core module's lock.
 
-## Known issues hit while dogfooding `lgs`
-
-- **`lgs basecamp reset` does not detect a launched basecamp that was started
-  in a separate shell.** It reports `kill: none (no live basecamp tracked)`
-  and wipes `.scaffold/basecamp/profiles/` out from under the running window,
-  segfaulting the `logos_host` subprocesses. Repro: `lgs basecamp install` →
-  `lgs basecamp launch alice` (in terminal A) → `lgs basecamp reset` (in
-  terminal B). Fix candidate: fall back to a `pgrep -f` against the profile
-  paths before wiping, or record the launcher PID on `launch` into a lockfile
-  that `reset` consults.
-
-- **`lgs basecamp reset` also clears captured modules from `scaffold.toml`,
-  which is more than expected.** Intuitively `reset` should only drop
-  *installed* state (profiles, live processes) so that `basecamp install` /
-  `basecamp build-portable` still work out of the box on the same project.
-  Today, after `reset`, `build-portable` refuses with `no project modules
-  captured in scaffold.toml; run `basecamp modules` first ... `build-portable`
-  operates on captured project sources only — it never discovers.`, forcing a
-  manual `lgs basecamp modules` step before any subsequent build. Fix
-  candidate: leave `[[basecamp.modules]]` untouched on `reset`, or gate the
-  capture-clearing behind an explicit `--clear-captures` flag.
-
 ## CI
 
 CI uses `lgs basecamp` commands end-to-end (see `.github/workflows/build.yml`).
