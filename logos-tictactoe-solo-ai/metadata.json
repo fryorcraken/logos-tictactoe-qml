@@ -1,10 +1,10 @@
 {
-  "name": "external_lib",
+  "name": "tictactoe_solo_ai",
   "version": "1.0.0",
   "type": "core",
-  "category": "integration",
-  "description": "Example module wrapping an external library",
-  "main": "external_lib_plugin",
+  "category": "game",
+  "description": "Tic-tac-toe game logic with minimax AI",
+  "main": "tictactoe_solo_ai_plugin",
   "dependencies": [],
 
   "nix": {
@@ -14,7 +14,7 @@
     },
     "external_libraries": [
       {
-        "name": "example_lib",
+        "name": "tictactoe",
         "vendor_path": "lib"
       }
     ],
