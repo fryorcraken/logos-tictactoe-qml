@@ -1,6 +1,5 @@
 [scaffold]
 version = "0.1.1"
-cache_root = "/home/fryorcraken/.cache/logos-scaffold"
 
 [repos.lez]
 url = "https://github.com/logos-blockchain/logos-execution-zone.git"
