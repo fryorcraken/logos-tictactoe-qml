@@ -50,16 +50,21 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          for d in logos-tictactoe-solo-ai logos-tictactoe-ui; do
-            cp -v "$d/result-lgx-portable"/*.lgx dist/
-          done
+          cp -v .scaffold/basecamp/portable/01-tictactoe_solo_ai.lgx dist/tictactoe_solo_ai.lgx
+          cp -v .scaffold/basecamp/portable/02-tictactoe_ui.lgx dist/tictactoe_ui.lgx
           ls -la dist/
 
-      - name: Upload LGX bundle
+      - name: Upload tictactoe_solo_ai.lgx
         uses: actions/upload-artifact@v4
         with:
-          name: tictactoe-lgx-bundle
-          path: dist/*.lgx
+          name: tictactoe_solo_ai.lgx
+          path: dist/tictactoe_solo_ai.lgx
+
+      - name: Upload tictactoe_ui.lgx
+        uses: actions/upload-artifact@v4
+        with:
+          name: tictactoe_ui.lgx
+          path: dist/tictactoe_ui.lgx
 
   release:
     needs: build
@@ -70,8 +75,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: tictactoe-lgx-bundle
           path: dist
+          merge-multiple: true
 
       - name: Create release
         uses: softprops/action-gh-release@v2
