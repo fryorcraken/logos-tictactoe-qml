@@ -22,3 +22,18 @@ path = "idl"
 [localnet]
 port = 3040
 risc0_dev_mode = true
+
+[basecamp]
+pin = "a746cdbc521f72ee22c5a4856fd17a9802bb9d69"
+source = "https://github.com/logos-co/logos-basecamp"
+lgpm_flake = ""
+port_base = 60000
+port_stride = 10
+
+[basecamp.modules.tictactoe_solo_ai]
+flake = "path:/home/fryorcraken/src/fryorcraken/logos-tictactoe-qml/logos-tictactoe-solo-ai#lgx"
+role = "project"
+
+[basecamp.modules.tictactoe_ui]
+flake = "path:/home/fryorcraken/src/fryorcraken/logos-tictactoe-qml/logos-tictactoe-ui#lgx"
+role = "project"

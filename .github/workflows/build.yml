@@ -1,0 +1,73 @@
+name: Build LGX
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install lgs (logos-scaffold)
+        run: cargo install --git https://github.com/logos-co/logos-scaffold.git --locked logos-scaffold
+
+      - name: Capture project modules
+        run: lgs basecamp modules
+
+      - name: Build portable LGX (both modules, via lgs)
+        id: build_portable
+        run: |
+          lgs basecamp build-portable | tee /tmp/portable.log
+
+      - name: Build dev LGX (both modules, via nix)
+        run: |
+          nix build 'path:./logos-tictactoe-solo-ai#lgx' --out-link result-solo-ai-dev
+          nix build 'path:./logos-tictactoe-ui#lgx'       --out-link result-ui-dev
+
+      - name: Stage artifacts
+        run: |
+          mkdir -p dist
+          grep -oE '/nix/store/[^ ]*\.lgx' /tmp/portable.log | while read -r p; do
+            cp -v "$p" dist/
+          done
+          cp -v result-solo-ai-dev/logos-tictactoe_solo_ai-module-lib.lgx dist/logos-tictactoe_solo_ai-module-lib-dev.lgx
+          cp -v result-ui-dev/logos-tictactoe_ui-module.lgx               dist/logos-tictactoe_ui-module-dev.lgx
+          ls -la dist/
+
+      - name: Upload LGX bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: tictactoe-lgx-bundle
+          path: dist/*.lgx
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tictactoe-lgx-bundle
+          path: dist
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.lgx
+          generate_release_notes: true
