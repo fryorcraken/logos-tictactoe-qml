@@ -36,3 +36,11 @@ source = "https://github.com/logos-co/logos-basecamp"
 lgpm_flake = ""
 port_base = 60000
 port_stride = 10
+
+[basecamp.modules.tictactoe_solo_ai]
+flake = "path:./logos-tictactoe-solo-ai#lgx"
+role = "project"
+
+[basecamp.modules.tictactoe_ui]
+flake = "path:./logos-tictactoe-ui#lgx"
+role = "project"
