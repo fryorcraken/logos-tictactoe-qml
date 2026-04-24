@@ -1,30 +1,168 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-Item {
-    width: 400
-    height: 300
+Rectangle {
+    id: root
+    color: "#1a1a1a"
+
+    // Game state (mirrored from tictactoe_solo_ai core module). The core
+    // exposes a hotseat mode too, but this UI always plays against the AI:
+    // the human is X, the AI is O.
+    property var board: [0, 0, 0, 0, 0, 0, 0, 0, 0]  // 0=empty, 1=X, 2=O
+    property int gameStatus: 0   // 0=ongoing, 1=X wins, 2=O wins, 3=draw
+    property int currentPlayer: 1  // 1=X, 2=O
+    property var winLine: []  // indices of the 3 winning cells
+
+    Component.onCompleted: callNewGame()
 
     ColumnLayout {
-        anchors.centerIn: parent
-        spacing: 12
+        anchors.fill: parent
+        anchors.margins: 24
+        spacing: 16
 
         Text {
+            text: "Tic-Tac-Toe"
+            font.pixelSize: 20
+            font.weight: Font.DemiBold
+            color: "#e0e0e0"
             Layout.alignment: Qt.AlignHCenter
-            text: "Hello from ui_qml_example!"
-            font.pixelSize: 18
+        }
+
+        Text {
+            id: statusLabel
+            text: statusText()
+            font.pixelSize: 14
+            color: "#e0e0e0"
+            Layout.alignment: Qt.AlignHCenter
+        }
+
+        GridLayout {
+            columns: 3
+            rowSpacing: 6
+            columnSpacing: 6
+            Layout.alignment: Qt.AlignHCenter
+
+            Repeater {
+                model: 9
+
+                Button {
+                    id: cellBtn
+                    Layout.preferredWidth: 96
+                    Layout.preferredHeight: 96
+
+                    property int cellValue: root.board[index]
+                    property bool isWinCell: root.winLine.indexOf(index) >= 0
+
+                    text: cellValue === 1 ? "X" : (cellValue === 2 ? "O" : "")
+                    font.pixelSize: 32
+                    font.weight: Font.Bold
+                    enabled: cellValue === 0 && root.gameStatus === 0
+
+                    onClicked: {
+                        var row = Math.floor(index / 3)
+                        var col = index % 3
+                        callPlay(row, col)
+                    }
+
+                    background: Rectangle {
+                        color: cellBtn.isWinCell ? "#1a3a1a"
+                             : cellBtn.hovered && cellBtn.enabled ? "#3a3a3a" : "#2a2a2a"
+                        border.color: cellBtn.isWinCell ? "#4aff4a"
+                                    : cellBtn.enabled ? "#555" : "#333"
+                        border.width: cellBtn.isWinCell ? 2 : 1
+                        radius: 4
+                    }
+
+                    contentItem: Text {
+                        text: cellBtn.text
+                        font: cellBtn.font
+                        color: cellBtn.cellValue === 1 ? "#4a9eff"
+                             : cellBtn.cellValue === 2 ? "#ff6b6b"
+                             : (cellBtn.enabled ? "#e0e0e0" : "#666")
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+            }
         }
 
         Button {
-            Layout.alignment: Qt.AlignHCenter
-            text: "Call Core Module"
-            onClicked: {
-                // The logos bridge is injected by the host application.
-                // Uncomment to call a backend module:
-                // var result = logos.callModule("my_module", "myMethod", ["arg"])
-                console.log("Button clicked")
+            id: newGameBtn
+            text: "New Game"
+            font.pixelSize: 12
+            Layout.fillWidth: true
+            onClicked: callNewGame()
+
+            background: Rectangle {
+                color: newGameBtn.hovered ? "#3a3a3a" : "#2a2a2a"
+                border.color: "#555"
+                border.width: 1
+                radius: 4
+            }
+
+            contentItem: Text {
+                text: newGameBtn.text
+                font: newGameBtn.font
+                color: "#e0e0e0"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
             }
         }
+
+        Item { Layout.fillHeight: true }
+    }
+
+    function callModule(method, args) {
+        if (typeof logos === "undefined" || !logos.callModule)
+            return -1
+        return logos.callModule("tictactoe_solo_ai", method, args)
+    }
+
+    function callNewGame() {
+        callModule("newGame", [true])
+        refreshBoard()
+    }
+
+    function callPlay(row, col) {
+        callModule("play", [row, col])
+        refreshBoard()
+    }
+
+    function refreshBoard() {
+        var newBoard = []
+        for (var r = 0; r < 3; r++) {
+            for (var c = 0; c < 3; c++) {
+                var cell = Number(callModule("getCell", [r, c])) || 0
+                newBoard.push(cell)
+            }
+        }
+        root.board = newBoard
+        root.gameStatus = Number(callModule("status", [])) || 0
+        root.currentPlayer = Number(callModule("currentPlayer", [])) || 0
+        root.winLine = (root.gameStatus === 1 || root.gameStatus === 2) ? findWinLine() : []
+    }
+
+    function findWinLine() {
+        var lines = [
+            [0,1,2], [3,4,5], [6,7,8],
+            [0,3,6], [1,4,7], [2,5,8],
+            [0,4,8], [2,4,6]
+        ]
+        for (var i = 0; i < lines.length; i++) {
+            var a = root.board[lines[i][0]]
+            var b = root.board[lines[i][1]]
+            var c = root.board[lines[i][2]]
+            if (a !== 0 && a === b && b === c)
+                return lines[i]
+        }
+        return []
+    }
+
+    function statusText() {
+        if (root.gameStatus === 1) return "You win!"
+        if (root.gameStatus === 2) return "AI wins!"
+        if (root.gameStatus === 3) return "Draw!"
+        return root.currentPlayer === 1 ? "Your turn (X)" : "AI thinking..."
     }
 }

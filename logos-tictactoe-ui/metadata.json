@@ -1,12 +1,12 @@
 {
-  "name": "ui_qml_example",
+  "name": "tictactoe_ui",
   "version": "1.0.0",
   "type": "ui_qml",
-  "category": "example",
-  "description": "A QML UI module",
+  "category": "game",
+  "description": "QML UI for tic-tac-toe solo + AI",
   "view": "Main.qml",
-  "icon": null,
-  "dependencies": [],
+  "icon": "icons/tictactoe.png",
+  "dependencies": ["tictactoe_solo_ai"],
 
   "nix": {
     "packages": {
