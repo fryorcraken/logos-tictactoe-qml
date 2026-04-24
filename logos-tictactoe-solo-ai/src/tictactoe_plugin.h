@@ -35,9 +35,8 @@ signals:
     void eventResponse(const QString& eventName, const QVariantList& args);
 
 private:
-    TicTacToeGame* m_game     = nullptr;
-    bool           m_vsAi     = false;
-    LogosAPI*      m_logosAPI = nullptr;
+    TicTacToeGame* m_game = nullptr;
+    bool           m_vsAi = false;
 };
 
 #endif // TICTACTOE_PLUGIN_H

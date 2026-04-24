@@ -17,7 +17,7 @@ TicTacToePlugin::~TicTacToePlugin()
 
 void TicTacToePlugin::initLogos(LogosAPI* api)
 {
-    m_logosAPI = api;
+    logosAPI = api;
     emit eventResponse("ready",
         QVariantList() << name() << version());
 }
